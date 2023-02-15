@@ -12,6 +12,9 @@ build-server: twirp-generate
 build-client: twirp-generate
 	go build -o ./bin/ ./cmd/HelloClient/
 
+docker:
+	docker build -t twirp-example:latest .
+
 clean:
 	rm -rf ./bin/
 	rm -rf ./helloworld/
