@@ -5,7 +5,7 @@ import (
 
 	"twirp-example/internal/server"
 
-	service "twirp-example/helloworld"
+	service "twirp-example/rpc/helloworld"
 
 	"github.com/rs/zerolog/log"
 )

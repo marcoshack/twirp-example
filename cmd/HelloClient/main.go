@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	service "twirp-example/helloworld"
+	service "twirp-example/rpc/helloworld"
 )
 
 func main() {

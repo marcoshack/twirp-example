@@ -1,6 +1,6 @@
 syntax = "proto3";
 package twirp.example.helloworld;
-option go_package = "github.com/marcoshack/twirp-example/helloworld";
+option go_package = "rpc/helloworld";
 
 service HelloWorld {
   rpc Hello(HelloReq) returns (HelloResp);
