@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -11,8 +12,14 @@ import (
 )
 
 func main() {
-	client := service.NewHelloWorldProtobufClient("http://localhost:8080", &http.Client{})
+	// parse CLI options
+	var serviceEndpoint string
+	flag.StringVar(&serviceEndpoint, "s", "http://localhost:8080", "service endpoint")
+
+	// initialize service client and send Hello request
+	client := service.NewHelloWorldProtobufClient(serviceEndpoint, &http.Client{})
 	resp, err := client.Hello(context.Background(), &service.HelloReq{Subject: fmt.Sprintf("there, it's %s", time.Now().Format(time.RFC3339))})
+
 	if err != nil {
 		fmt.Printf("[ERROR] Failed calling HelloServer: %s\n", err.Error())
 		os.Exit(1)
