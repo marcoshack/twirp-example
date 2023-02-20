@@ -10,7 +10,10 @@ build-client: twirp-generate
 	go build -o ./bin/ ./cmd/HelloClient/
 
 docker:
-	docker build -t twirp-example:latest .
+	docker build -t marcoshack/twirp-example:latest .
+
+docker-run: docker
+	docker run -d --rm -p 8080:8080 marcoshack/twirp-example
 
 clean:
 	rm -rf ./bin/

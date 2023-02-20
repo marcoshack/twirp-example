@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	service "twirp-example/rpc/helloworld"
 
 	"github.com/rs/zerolog/log"
@@ -9,5 +10,5 @@ import (
 
 func (s *HelloWorldServer) Hello(ctx context.Context, req *service.HelloReq) (*service.HelloResp, error) {
 	log.Info().Interface("request", req).Msg("Processing request")
-	return &service.HelloResp{Text: "Hello " + req.Subject}, nil
+	return &service.HelloResp{Text: fmt.Sprintf("Hello, %s!", req.Subject)}, nil
 }
