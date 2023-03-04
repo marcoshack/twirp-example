@@ -1,7 +1,7 @@
 //go:build tools
 // +build tools
 
-package twirp_test
+package main
 
 import (
 	_ "github.com/twitchtv/twirp/protoc-gen-twirp"
