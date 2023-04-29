@@ -4,9 +4,9 @@ import (
 	"flag"
 	"net/http"
 
-	"twirp-example/internal/server"
+	"github.com/marcoshack/twirp-example/internal/server"
 
-	service "twirp-example/rpc/helloworld"
+	service "github.com/marcoshack/twirp-example/rpc/helloworld"
 
 	"github.com/rs/zerolog/log"
 )

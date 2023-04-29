@@ -1,6 +1,6 @@
-module twirp-example
+module github.com/marcoshack/twirp-example
 
-go 1.18
+go 1.20
 
 require (
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
