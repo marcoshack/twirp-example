@@ -27,7 +27,25 @@ func main() {
 	flag.StringVar(&tableName, "t", "HelloTable", "DynamoDB table name")
 	flag.Parse()
 
-	// create DAO
+	dao, err := createDAO(ddbEndpoint, tableName)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to create DAO")
+	}
+
+	server, err := createServer(dao, bindAddr)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to create Twirp handler")
+	}
+
+	captureStopSignals()
+
+	err = server.ListenAndServe()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to start server")
+	}
+}
+
+func createDAO(ddbEndpoint string, tableName string) (*storage.HelloDAO, error) {
 	ddbClient, err := storage.CreateDynamoDBLocalClient(context.TODO(), ddbEndpoint)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create DynamoDB client: %v", err))
@@ -35,7 +53,7 @@ func main() {
 
 	tables, err := ddbClient.ListTables(context.TODO(), &dynamodb.ListTablesInput{})
 	if err != nil {
-		panic(fmt.Sprintf("failed to list tables: %v", err))
+		return nil, fmt.Errorf("failed to list tables: %v", err)
 	}
 	exists := false
 	for _, table := range tables.TableNames {
@@ -51,14 +69,23 @@ func main() {
 		}
 	}
 	dao := storage.NewHelloDAO(ddbClient, tableName)
+	return dao, nil
+}
 
-	// initialize Twirp service and HTTP server
+func createServer(dao *storage.HelloDAO, bindAddr string) (*http.Server, error) {
 	helloServer := server.NewHelloWorldServer(dao)
 	twirpHandler := service.NewHelloWorldServer(helloServer)
 	mux := http.NewServeMux()
 	mux.Handle(twirpHandler.PathPrefix(), twirpHandler)
+	server := &http.Server{
+		Addr:              bindAddr,
+		Handler:           twirpHandler,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	return server, nil
+}
 
-	// capture SIGINT and SIGTERM
+func captureStopSignals() {
 	go func() {
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
@@ -68,16 +95,4 @@ func main() {
 		log.Info().Msg("Done.")
 		os.Exit(0)
 	}()
-
-	// start server
-	log.Info().Str("port", bindAddr).Int("pid", os.Getpid()).Msg("Starting HelloServer")
-	server := &http.Server{
-		Addr:              bindAddr,
-		Handler:           mux,
-		ReadHeaderTimeout: 5 * time.Second,
-	}
-	err = server.ListenAndServe()
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to start server")
-	}
 }
