@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/marcoshack/twirp-example/internal/server"
@@ -70,5 +71,13 @@ func main() {
 
 	// start server
 	log.Info().Str("port", bindAddr).Int("pid", os.Getpid()).Msg("Starting HelloServer")
-	http.ListenAndServe(bindAddr, mux)
+	server := &http.Server{
+		Addr:              bindAddr,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	err = server.ListenAndServe()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to start server")
+	}
 }

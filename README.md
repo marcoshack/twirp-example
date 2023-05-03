@@ -24,9 +24,10 @@ sudo apt install make protobuf-compiler
 ### Checkout, install and build
 
 ```sh
-mkdir -p $GOPATH/src/github.com/marcoshack
+mkdir -p $HOME/work
+cd $HOME/work
 git clone git@github.com:marcoshack/twirp-example.git
-cd $GOPATH/src/github.com/marcoshack/twirp-example
+cd twirp-example
 ```
 ```sh
 go mod download

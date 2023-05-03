@@ -1,10 +1,13 @@
-all: test build
+all: test gosec build
 
 help:
 	@sed -ne '/@sed/!s/## /-- /p' $(MAKEFILE_LIST)
 
 test: ## Run unit tests
 	go test -v ./...
+
+gosec: ## Run Go Security Checker (gosec)
+	gosec ./...
 
 build: twirp-generate build-server build-client ## Build server and client
 
@@ -22,6 +25,10 @@ docker-build: ## Build docker image for HelloServer
 
 docker-run: ## Run HelloServer inside a containers
 	docker run --rm -p 8080:8080 marcoshack/twirp-example
+
+workspace: ## Setup your local workspace to build the project
+# TODO Doesn't work from Makefile
+#	cat tools.go | grep _ | awk -F'\"' '{print $2}' | xargs -tI % go install %
 
 clean: ## Clean workspace
 	rm -rf ./bin/
