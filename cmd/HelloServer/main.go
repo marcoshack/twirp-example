@@ -26,6 +26,7 @@ func main() {
 		server.WithDDBEndpoint(ddbEndpoint),
 		server.WithDDBTableName(ddbTableName),
 		server.WithLogger(&logger),
+		server.WithServerHooks(server.NewRequestLoggingServerHooks(&logger)),
 	)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed to create server")

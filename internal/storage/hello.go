@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 )
 
 type HelloDAO struct {
@@ -36,6 +37,7 @@ func NewHelloDAO(ddbClient *dynamodb.Client, tableName string) *HelloDAO {
 
 // AddHelloWorld saves the hello world message to the database.
 func (d *HelloDAO) AddHelloWorld(ctx context.Context, input *HelloInput) (*HelloEntry, error) {
+	log.Ctx(ctx).Debug().Msg("adding hello world")
 	entry := &HelloEntry{
 		ID:        uuid.NewString(),
 		CreatedAt: time.Now().UTC(),

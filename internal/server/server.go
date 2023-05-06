@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/marcoshack/twirp-example/internal/storage"
 	"github.com/rs/zerolog"
+	"github.com/twitchtv/twirp"
 
 	service "github.com/marcoshack/twirp-example/rpc/helloworld"
 )
@@ -25,6 +26,12 @@ type HelloServerConfig struct {
 	DDBTableName string
 	DDBTimeout   time.Duration
 	Logger       *zerolog.Logger
+	ServerHooks  []*twirp.ServerHooks
+}
+
+func (c *HelloServerConfig) String() string {
+	return fmt.Sprintf("HelloServerConfig{BindAddr: %s, DDBEndpoint: %s, DDBTableName: %s, DDBTimeout: %s}",
+		c.BindAddr, c.DDBEndpoint, c.DDBTableName, c.DDBTimeout)
 }
 
 type HelloServerOption func(*HelloServerConfig)
@@ -62,6 +69,15 @@ func WithLogger(logger *zerolog.Logger) HelloServerOption {
 	}
 }
 
+func WithServerHooks(hooks ...*twirp.ServerHooks) HelloServerOption {
+	return func(c *HelloServerConfig) {
+		newHooks := make([]*twirp.ServerHooks, len(hooks)+len(c.ServerHooks))
+		newHooks = append(newHooks, c.ServerHooks...)
+		newHooks = append(newHooks, hooks...)
+		c.ServerHooks = newHooks
+	}
+}
+
 func NewHelloWorldServer(options ...HelloServerOption) (*HelloServer, error) {
 	config := DefaultServerConfig
 	for _, option := range options {
@@ -80,7 +96,9 @@ func NewHelloWorldServer(options ...HelloServerOption) (*HelloServer, error) {
 }
 
 func (s *HelloServer) Start() error {
-	twirpHandler := service.NewHelloWorldServer(s)
+	twirpOptions := twirp.WithServerHooks(twirp.ChainHooks(s.config.ServerHooks...))
+	twirpHandler := service.NewHelloWorldServer(s, twirpOptions)
+
 	mux := http.NewServeMux()
 	mux.Handle(twirpHandler.PathPrefix(), twirpHandler)
 	server := &http.Server{
@@ -89,7 +107,7 @@ func (s *HelloServer) Start() error {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	s.config.Logger.Info().Interface("config", s.config).Msg("starting server")
+	s.config.Logger.Info().Stringer("config", s.config).Msg("starting server")
 	return server.ListenAndServe()
 }
 
