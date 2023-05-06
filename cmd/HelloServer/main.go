@@ -1,98 +1,54 @@
 package main
 
 import (
-	"context"
 	"flag"
-	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/marcoshack/twirp-example/internal/server"
-	"github.com/marcoshack/twirp-example/internal/storage"
 
-	service "github.com/marcoshack/twirp-example/rpc/helloworld"
-
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 )
 
 func main() {
 	// parse CLI options
-	var bindAddr, tableName, ddbEndpoint string
+	var bindAddr, ddbEndpoint, ddbTableName string
 	flag.StringVar(&bindAddr, "b", "localhost:8080", "server listening address")
 	flag.StringVar(&ddbEndpoint, "e", "http://localhost:8000", "DynamoDB endpoint URL")
-	flag.StringVar(&tableName, "t", "HelloTable", "DynamoDB table name")
+	flag.StringVar(&ddbTableName, "t", "HelloTable", "DynamoDB table name")
 	flag.Parse()
 
-	dao, err := createDAO(ddbEndpoint, tableName)
+	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
+
+	server, err := server.NewHelloWorldServer(
+		server.WithBindAddr(bindAddr),
+		server.WithDDBEndpoint(ddbEndpoint),
+		server.WithDDBTableName(ddbTableName),
+		server.WithLogger(&logger),
+	)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to create DAO")
+		logger.Fatal().Err(err).Msg("failed to create server")
 	}
 
-	server, err := createServer(dao, bindAddr)
-	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to create Twirp handler")
-	}
+	onShutdown(func() int {
+		logger.Info().Msg("shutting down...")
+		server.Stop()
+		logger.Info().Msg("done")
+		return 0
+	})
 
-	captureStopSignals()
-
-	err = server.ListenAndServe()
+	err = server.Start()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to start server")
+		logger.Fatal().Err(err).Msg("failed to start server")
 	}
 }
 
-func createDAO(ddbEndpoint string, tableName string) (*storage.HelloDAO, error) {
-	ddbClient, err := storage.CreateDynamoDBLocalClient(context.TODO(), ddbEndpoint)
-	if err != nil {
-		panic(fmt.Sprintf("failed to create DynamoDB client: %v", err))
-	}
-
-	tables, err := ddbClient.ListTables(context.TODO(), &dynamodb.ListTablesInput{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to list tables: %v", err)
-	}
-	exists := false
-	for _, table := range tables.TableNames {
-		if table == tableName {
-			exists = true
-		}
-	}
-	if !exists {
-		log.Info().Msgf("Table %s does not exist, creating it...", tableName)
-		_, err = ddbClient.CreateTable(context.TODO(), storage.CreateTableInput(tableName))
-		if err != nil {
-			panic(fmt.Sprintf("failed to create table: %v", err))
-		}
-	}
-	dao := storage.NewHelloDAO(ddbClient, tableName)
-	return dao, nil
-}
-
-func createServer(dao *storage.HelloDAO, bindAddr string) (*http.Server, error) {
-	helloServer := server.NewHelloWorldServer(dao)
-	twirpHandler := service.NewHelloWorldServer(helloServer)
-	mux := http.NewServeMux()
-	mux.Handle(twirpHandler.PathPrefix(), twirpHandler)
-	server := &http.Server{
-		Addr:              bindAddr,
-		Handler:           twirpHandler,
-		ReadHeaderTimeout: 5 * time.Second,
-	}
-	return server, nil
-}
-
-func captureStopSignals() {
+func onShutdown(teardown func() int) {
 	go func() {
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 		<-sig
-		log.Info().Msg("HelloServer shutting down...")
-		// TODO release resources, wait go routines, etc...
-		log.Info().Msg("Done.")
-		os.Exit(0)
+		os.Exit(teardown())
 	}()
 }

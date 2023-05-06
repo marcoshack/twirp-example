@@ -11,7 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (s *HelloWorldServer) Hello(ctx context.Context, req *service.HelloReq) (*service.HelloResp, error) {
+func (s *HelloServer) Hello(ctx context.Context, req *service.HelloReq) (*service.HelloResp, error) {
 	log.Info().Interface("request", req).Msg("Processing request")
 	entry, err := s.dao.AddHelloWorld(ctx, &storage.HelloInput{
 		Message: req.Subject,
