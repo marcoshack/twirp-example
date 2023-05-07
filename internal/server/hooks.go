@@ -5,10 +5,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/twitchtv/twirp"
+)
+
+const (
+	HTTPHeaderXRequestID = "X-Request-ID"
 )
 
 type ContextKey string
@@ -16,16 +19,12 @@ type ContextKey string
 func NewRequestLoggingServerHooks(logger *zerolog.Logger) *twirp.ServerHooks {
 	return &twirp.ServerHooks{
 		RequestRouted: func(ctx context.Context) (context.Context, error) {
-			headers, _ := twirp.HTTPRequestHeaders(ctx)
 			methodName, _ := twirp.MethodName(ctx)
-			requestID := headers.Get("RequestID")
-			if requestID == "" {
-				requestID = uuid.NewString()
-			}
 
 			newCtx := logger.With().
 				Str("method", methodName).
-				Str("requestID", requestID).
+				// TODO extract HTTP headers with an HTTP middleware (see https://twitchtv.github.io/twirp/docs/headers.html)
+				Str("requestID", "").
 				Logger().WithContext(ctx)
 
 			newCtx = context.WithValue(newCtx, ContextKey("requestStart"), strconv.FormatInt(time.Now().UTC().UnixMilli(), 10))

@@ -33,6 +33,8 @@ cd twirp-example
 go mod download
 go install github.com/twitchtv/twirp/protoc-gen-twirp@latest
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+go install github.com/securego/gosec/v2/cmd/gosec@latest
+go install golang.org/x/lint/golint@latest
 ```
 ```sh
 make

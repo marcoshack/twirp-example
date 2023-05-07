@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/marcoshack/twirp-example/internal/server"
 
@@ -19,7 +20,9 @@ func main() {
 	flag.StringVar(&ddbTableName, "t", "HelloTable", "DynamoDB table name")
 	flag.Parse()
 
-	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
+	logger := zerolog.New(zerolog.NewConsoleWriter(func(w *zerolog.ConsoleWriter) {
+		w.TimeFormat = time.RFC3339
+	})).With().Timestamp().Logger()
 
 	server, err := server.NewHelloWorldServer(
 		server.WithBindAddr(bindAddr),
