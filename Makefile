@@ -11,6 +11,9 @@ test: ## Run unit tests
 	go tool cover -html=$(BUILD_DIR)/coverage.out -o $(BUILD_DIR)/coverage.html
 	go tool cover -func=$(BUILD_DIR)/coverage.out
 
+integ-test: ## Run integration tests
+	RUN_INTEG_TESTS=1 go test -v -count=1 -run "^TestIntegration" ./test
+
 gosec: ## Run Go Security Checker (gosec)
 	gosec ./...
 
