@@ -11,11 +11,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type HelloDAO struct {
-	ddbClient *dynamodb.Client
-	tableName string
-}
-
 // HelloEntry represents a hello world entry in the database.
 type HelloEntry struct {
 	ID        string    `dynamodbav:"PK,omitempty"`
@@ -26,13 +21,6 @@ type HelloEntry struct {
 // HelloInput is the input for the AddHelloWorld function.
 type HelloInput struct {
 	Message string `json:"message"`
-}
-
-func NewHelloDAO(ddbClient *dynamodb.Client, tableName string) *HelloDAO {
-	return &HelloDAO{
-		ddbClient: ddbClient,
-		tableName: tableName,
-	}
 }
 
 // AddHelloWorld saves the hello world message to the database.

@@ -9,6 +9,18 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
+type HelloDAO struct {
+	ddbClient *dynamodb.Client
+	tableName string
+}
+
+func NewHelloDAO(ddbClient *dynamodb.Client, tableName string) *HelloDAO {
+	return &HelloDAO{
+		ddbClient: ddbClient,
+		tableName: tableName,
+	}
+}
+
 // CreateTableInput creates a table input for the HelloService DAO.
 func CreateTableInput(tableName string) *dynamodb.CreateTableInput {
 	return &dynamodb.CreateTableInput{

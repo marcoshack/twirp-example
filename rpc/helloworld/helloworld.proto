@@ -4,6 +4,7 @@ option go_package = "rpc/helloworld";
 
 service HelloWorld {
   rpc Hello(HelloReq) returns (HelloResp);
+  rpc GetAll(GetAllReq) returns (GetAllResp);
 }
 
 message HelloReq {
@@ -12,4 +13,20 @@ message HelloReq {
 
 message HelloResp {
   string text = 1;
+}
+
+message HelloItem {
+  string id = 1;
+  string createdAt = 2;
+  string message = 3; 
+}
+
+message GetAllReq {
+  int32 limit = 1;
+}
+
+message GetAllResp {
+  repeated HelloItem items = 1;
+  int32 size = 2;
+  string nextPageToken = 3;
 }
