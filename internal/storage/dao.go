@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
+// CreateTableInput creates a table input for the HelloService DAO.
 func CreateTableInput(tableName string) *dynamodb.CreateTableInput {
 	return &dynamodb.CreateTableInput{
 		TableName: aws.String(tableName),

@@ -19,6 +19,9 @@ gosec: ## Run Go Security Checker (gosec)
 
 build: twirp-generate build-server build-client ## Build server and client
 
+run: build-server
+	$(BUILD_DIR)/bin/HelloServer
+
 twirp-generate: ## Generate Twirp and Protobuf Go code
 	protoc --go_out=. --twirp_out=. rpc/helloworld/helloworld.proto
 
