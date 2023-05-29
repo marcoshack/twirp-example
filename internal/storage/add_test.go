@@ -28,7 +28,8 @@ func TestHelloDAO_CreateDAO(t *testing.T) {
 }
 
 func TestHelloDAO_AddHelloWorld(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	dao, ddbClient, tableName := createDAO(t, ctx)
 	defer cleanUpDAO(t, ctx, ddbClient, tableName)
 
@@ -41,7 +42,7 @@ func TestHelloDAO_AddHelloWorld(t *testing.T) {
 }
 
 func createDAO(t *testing.T, ctx context.Context) (*storage.HelloDAO, *dynamodb.Client, string) {
-	ddbClient, err := storage.CreateDynamoDBLocalClient(ctx, "http://localhost:8000")
+	ddbClient, err := storage.CreateDynamoDBLocalClient(ctx, "http://dynamodb-local:8000")
 	require.NoError(t, err, "create dynamodb client should not return an error")
 	tableName := testTablePrefix + "-" + uuid.NewString()
 

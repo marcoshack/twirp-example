@@ -31,17 +31,26 @@ build-server: ## Build HelloServer
 build-client: ## Build HelloClient
 	go build -o $(BUILD_DIR)/bin ./cmd/HelloClient/
 
-docker-build: ## Build docker image for HelloServer
-	docker build -t marcoshack/twirp-example:latest .
-
-docker-run: ## Run HelloServer inside a containers
-	docker run --rm -p 8080:8080 marcoshack/twirp-example
-
-workspace: ## Setup your local workspace to build the project
-# TODO Doesn't work from Makefile
-#	cat tools.go | grep _ | awk -F'\"' '{print $2}' | xargs -tI % go install %
-
 clean: ## Clean workspace
 	rm -rf $(BUILD_DIR)
 
-.PHONY: all test gosec build twirp-generate build-server build-client docker docker-run clean
+docker-build: docker-dev-run ## Build twirp service and client within the docker development container
+	docker exec twirp-example-dev make
+
+docker-service-image: ## Build docker image for HelloServer
+	docker build -t marcoshack/twirp-example:latest -f Dockerfile.service .
+
+docker-service-run: ## Run HelloServer inside a containers
+	docker run --rm -p 8080:8080 marcoshack/twirp-example
+
+docker-dev-build: ## Build docker compose development environment
+	docker compose build --build-arg USERNAME=${USER} --build-arg USERID=$(shell id -u ${USERNAME}) development
+
+docker-dev-run: ## Docker compose up development environment
+	docker compose up -d development
+
+docker-dev-connect: ## Attach to a running docker compose development environment
+	docker attach twirp-example-dev
+
+.PHONY: all test gosec build twirp-generate build-server build-client clean docker-service-image \
+		docker-service-run docker-dev-build docker-dev-run docker-dev-connect

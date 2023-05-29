@@ -1,0 +1,6 @@
+# Dockerfile for the twirp-example server image
+# For development environment image see Dockerfile.
+FROM amazonlinux:2023
+COPY build/bin/HelloServer /usr/bin/HelloServer
+EXPOSE 8080
+ENTRYPOINT /usr/bin/HelloServer
